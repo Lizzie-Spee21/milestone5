@@ -1,0 +1,78 @@
+---
+title: "AI Art vs. Physical Art Usage (2021–2025)"
+format: html
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+```{r}
+library(tidyverse)
+
+# Load monthly AI art usage from TWIGMA (Zenodo)
+twigma_monthly <- read_csv("data/twigma_monthly.csv")
+
+# Load physical vs. AI art benchmark counts from AI-ArtBench (Kaggle)
+artbench_styles <- read_csv("data/artbench_twigma_styles.csv")
+physical_baseline <- sum(artbench_styles$artbench_physical_art) # 60,000 physical artworks
+artbench_ai_total <- sum(artbench_styles$artbench_ai_art)       # 125,000 AI artworks
+```
+
+## Scatter Plot: Monthly AI Art Usage vs. Physical Art Benchmark
+
+Because **TWIGMA** (Zenodo) tracks **805,650 AI-generated artworks** shared over time (Jan 2021 – Mar 2023) while **AI-ArtBench** (Kaggle) provides a static benchmark of **60,000 physical (human-made) artworks** and **125,000 AI artworks** across 10 historical styles, the scatter plot below shows monthly AI art volume over time alongside the AI-ArtBench physical and AI art benchmarks.
+
+```{r}
+#| label: fig-scatter-timeline
+#| fig-width: 8
+#| fig-height: 5
+
+twigma_monthly |>
+  ggplot(aes(x = month, y = ai_art_posts, size = total_likes)) +
+  # Reference lines from AI-ArtBench (Kaggle)
+  geom_hline(
+    yintercept = physical_baseline,
+    linetype = "dashed",
+    color = "#2b5c8f",
+    linewidth = 0.9
+  ) +
+  geom_hline(
+    yintercept = artbench_ai_total,
+    linetype = "dotted",
+    color = "#d95f02",
+    linewidth = 0.9
+  ) +
+  annotate(
+    "text",
+    x = as_date("2021-02-01"),
+    y = physical_baseline + 8000,
+    label = "AI-ArtBench Physical Art Total (60,000 artworks)",
+    hjust = 0,
+    color = "#2b5c8f",
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = as_date("2021-02-01"),
+    y = artbench_ai_total + 8000,
+    label = "AI-ArtBench AI Art Total (125,000 artworks)",
+    hjust = 0,
+    color = "#d95f02",
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  # Scatter points for monthly TWIGMA AI art usage
+  geom_point(color = "#d95f02", alpha = 0.8) +
+  scale_y_continuous(labels = scales::label_comma()) +
+  scale_size_continuous(labels = scales::label_comma(), name = "Monthly Likes") +
+  labs(
+    title = "Explosion of AI Art Usage Compared to Physical Art Benchmark",
+    subtitle = "Monthly AI art posts in TWIGMA (2021–2023) vs. AI-ArtBench physical & AI art totals",
+    x = "Month",
+    y = "Number of Artworks / Posts",
+    caption = "Sources: TWIGMA (Zenodo, 2021–2023) & AI-ArtBench / ArtBench-10 (Kaggle)"
+  ) +
+  theme_minimal(base_size = 12)
+```
